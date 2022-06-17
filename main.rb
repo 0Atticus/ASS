@@ -124,7 +124,22 @@ def parse_vars(input, vars)
             else
                 vars[name] << value
             end
-        
+
+        elsif line.include?(" -= ")
+
+            name = line.split(" -= ")[0]
+            value = line.split(" -= ")[1]
+
+            vars.each do |key, val|
+                if value == key
+                    value = val
+                end
+            end
+
+            if value.to_i != nil 
+                vars[name] -= value.to_i
+            end
+
         else
             vars.each do |key, val|
                 if line.include?("#{key}")
