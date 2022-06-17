@@ -6,83 +6,6 @@ end
 
 
 
-def parse_variables(input)
-
-    vars = {}
-    output = ""
-
-    input.split("\n").each do |line|
-
-        if line.include?(" = ")
-
-            name = line.split(" = ")[0]
-            value = line.split(" = ")[1]
-
-            vars.each do |key, val|
-                if value == key
-                    value = val.to_s
-                end
-            end
-
-            if value.start_with?("[") && value.end_with?("]")
-
-                temp = []
-                
-                value.split("[")[1].split("]")[0].split(", ").each do |i|
-                    
-                    temp << i
-
-                end
-
-                vars[name] = temp
-
-            elsif value.start_with?("\"") && value.end_with?("\"")
-                vars[name] = value.gsub("\"", "")
-
-            elsif value.to_i != nil
-                vars[name] = value.to_i
-            else
-                vars[name] = value
-
-            end
-
-        elsif line.include? ("+=")
-            
-            name = line.split(" ")[0]
-            value = line.split("+= ")[1].gsub(" ","")
-
-            vars.each do |key, val|
-                if value == key
-                    value = val
-                end
-            end
-
-            if value.to_i != nil
-                vars[name] += value.to_i
-            else
-                vars[name] << value
-            end
-
-        else
-            output << "#{line}\n"
-        end
-
-    end
-
-    vars.each do |key, val|
-        if output.include?(key)
-            if val.is_a? Array
-                output = output.gsub("#{key}", "[#{val.join(",")}]")
-            else
-                output = output.gsub("#{key}", "#{val}")
-            end
-        end
-    end
-    return output, vars
-
-end
-
-
 
 def parse_loops(input, vars)
 
@@ -105,20 +28,12 @@ def parse_loops(input, vars)
             if line == "end"
                 loop_depth -= 1
                 if loop_depth == 0
-                    if iterator.start_with?("[")
-                        iterator = iterator.split("[")[1].split("]")[0].split(",")
-                        iterator.each do |i|
-                            i = i.gsub("\"", "")
-                            output << "#{loop_content.gsub("!#{replace_var}", "#{i}")}\n"
-                        end
-                    else
-                        i = 1
-                        until i > iterator.to_i
-                            output << "#{loop_content.gsub("!#{replace_var}", "#{i}")}\n"
-                            i += 1
-                        end 
+                    i = 1
+                    until i > iterator.to_i
+                        output << "#{loop_content.gsub("!#{replace_var}", "#{i}")}\n"
+                        i += 1
+                    end 
 
-                    end
                     loop_cap = false
                     iterator = nil
                     replace_var = nil
@@ -131,7 +46,9 @@ def parse_loops(input, vars)
                 loop_content << "#{line}\n"
             end
         elsif !line.include?("for")
-            output << "#{line}\n"
+            if line != ""
+                output << "#{line}\n"
+            end
         end
 
         if line.start_with?("for")
@@ -148,6 +65,7 @@ def parse_loops(input, vars)
 
     end
 
+
     return output
 
 end
@@ -155,20 +73,83 @@ end
 
 
 
+def initialize_vars(input)
 
-output = parse_variables(File.read("style.ass"))[0]
-vars = parse_variables(File.read("style.ass"))[1]
-puts vars, output
+ vars = {}
+ output = ""
 
+input.split("\n").each do |line|
+
+    if line.include?(" = ")
+
+        name = line.split(" = ")[0]
+        value = line.split(" = ")[1]
+
+
+        if value.to_i != nil
+            vars[name] = value.to_i
+
+        else
+            vars[name] = value
+        end
+    
+    else
+        if line != ""
+            output << "#{line}\n"
+        end
+    end
+
+
+end
+    return output, vars
+end
+
+
+def parse_vars(input, vars)
+    vars = vars
+    output = "" 
+    input.split("\n").each do |line|
+        if line.include? (" += ")
+            name = line.split(" += ")[0]
+            value = line.split(" += ")[1]
+
+            vars.each do |key, val|
+                if value == key
+                    value = val
+                end
+            end
+
+            if value.to_i != nil
+                vars[name] = vars[name] + value.to_i
+            else
+                vars[name] << value
+            end
+        
+        else
+            vars.each do |key, val|
+                if line.include?("#{key}")
+                    line =  "#{line.gsub("#{key}", "#{val}")}"
+                end
+            end
+            if line != ""
+                output << "#{line}\n"
+            end
+        end
+        
+
+
+    end
+    return output
+
+end
+
+
+input = File.read("style.ass")
+output = initialize_vars(input)[0]
+vars = initialize_vars(input)[1]
 output = parse_loops(output, vars)
 while output.include?("end")
     output = parse_loops(output, vars)
 end
-temp = ""
-output.split("\n").each do |line|
-    if line != ""
-        temp << "#{line}\n"
-    end
-end
-output = temp
+output = parse_vars(output, vars)
 File.write("style.css", output)
