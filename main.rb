@@ -1,9 +1,18 @@
 class String
     def is_num?
-        return string.to_i != nil
+        true if Float(self) rescue false
     end
 end
-
+class Integer
+  def is_num?
+    true
+  end
+end
+class Array
+  def is_num?
+    false
+  end
+end
 
 
 
@@ -28,16 +37,31 @@ def parse_loops(input, vars)
             if line == "end"
                 loop_depth -= 1
                 if loop_depth == 0
-                    i = 1
-                    until i > iterator.to_i
-                        output << "#{loop_content.gsub("!#{replace_var}", "#{i}")}\n"
-                        i += 1
-                    end 
 
-                    loop_cap = false
-                    iterator = nil
-                    replace_var = nil
-                    loop_content = ""
+                    vars.each do |key, val|
+                        if iterator == key
+                            iterator = val
+                        end
+                    end
+
+                    if iterator.is_num?
+                        i = 1
+                        until i > iterator.to_i
+                            output << "#{loop_content.gsub("!#{replace_var}", "#{i}")}\n"
+                            i += 1
+                        end 
+
+                        loop_cap = false
+                        iterator = nil
+                        replace_var = nil
+                        loop_content = ""
+                    
+                    elsif iterator.is_a? Array
+                        iterator.each do |i|
+                            output << "#{loop_content.gsub("!#{replace_var}", "#{i}")}\n"
+                        end
+
+                    end
                 end
             end
             if line == "end" && loop_cap == false
@@ -85,12 +109,20 @@ input.split("\n").each do |line|
         name = line.split(" = ")[0]
         value = line.split(" = ")[1]
 
+        vars.each do |key, val|
+            if value == key
+                value = val
+            end
+        end
 
-        if value.to_i != nil
+        if value.is_num?
             vars[name] = value.to_i
+        
+        elsif value.start_with?("[") && value.end_with?("]")
+            vars[name] = value.split("[")[1].split("]")[0].split(", ")
 
         else
-            vars[name] = value
+            vars[name] = value.gsub("\"", "")
         end
     
     else
@@ -119,7 +151,7 @@ def parse_vars(input, vars)
                 end
             end
 
-            if value.to_i != nil
+            if value.is_num?
                 vars[name] = vars[name] + value.to_i
             else
                 vars[name] << value
@@ -143,7 +175,7 @@ def parse_vars(input, vars)
         else
             vars.each do |key, val|
                 if line.include?("#{key}")
-                    line =  "#{line.gsub("#{key}", "#{val}")}"
+                    line =  "#{line.gsub("!#{key}", "#{val}")}"
                 end
             end
             if line != ""
@@ -159,7 +191,7 @@ def parse_vars(input, vars)
 end
 
 
-input = File.read("style.ass")
+input = File.read(ARGV[0])
 output = initialize_vars(input)[0]
 vars = initialize_vars(input)[1]
 output = parse_loops(output, vars)
@@ -167,4 +199,4 @@ while output.include?("end")
     output = parse_loops(output, vars)
 end
 output = parse_vars(output, vars)
-File.write("style.css", output)
+File.write(ARGV[1], output)
