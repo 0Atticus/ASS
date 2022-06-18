@@ -10,6 +10,16 @@ In a bash shell, run:
 cd && git clone https://github.com/0Atticus/ASS && ass(){ bash ~/ass/ass.sh $1 $2 $3; }
 ```
 
+To compile your css file run:
+```bash
+ass [.ass file] [.css file]
+```
+
+Constantly compile:
+```bash
+ass --watch [.ass file] [.css file]
+```
+
 ## Documentation
 ---
 Spacing is important, use spaces where demonstrated and do not indent in your .ass file.(WIP)
