@@ -60,9 +60,9 @@ end
 
 .css file:
 ```css
-2
-three
-4
+0: 2
+1: three
+2: 4
 ```
 
 ## Examples
