@@ -43,7 +43,6 @@ def parse_loops(input, vars)
                             iterator = val
                         end
                     end
-
                     if iterator.is_num?
                         i = 1
                         until i > iterator.to_i
@@ -106,8 +105,8 @@ input.split("\n").each do |line|
 
     if line.include?("=")
 
-        name = line.split("=")[0].gsub(" ", "")
-        value = line.split("=")[1]
+        name = line.split(" = ")[0]
+        value = line.split(" = ")[1]
 
         vars.each do |key, val|
             if value == key
