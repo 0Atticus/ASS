@@ -1,3 +1,9 @@
+require 'w3c_validators'
+  
+include W3CValidators
+
+@validator = CSSValidator.new
+
 class String
     def is_num?
         true if Float(self) rescue false
@@ -198,4 +204,12 @@ while output.include?("end")
     output = parse_loops(output, vars)
 end
 output = parse_vars(output, vars)
-File.write(ARGV[1], output)
+
+results = @validator.validate_text(output)
+
+if results.errors.length > 0
+    File.write(ARGV[1], "/*error on line #{@validator.validate_text(output).errors.to_s.split("@line=\"")[1].split("\"")[0]}/*")
+else
+    File.write(ARGV[1], output)
+end
+
