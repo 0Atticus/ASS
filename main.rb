@@ -1,9 +1,3 @@
-require 'w3c_validators'
-  
-include W3CValidators
-
-@validator = CSSValidator.new
-
 class String
     def is_num?
         true if Float(self) rescue false
@@ -93,7 +87,6 @@ def parse_loops(input, vars)
 
 
     end
-
 
     return output
 
@@ -205,11 +198,26 @@ while output.include?("end")
 end
 output = parse_vars(output, vars)
 
-results = @validator.validate_text(output)
+begin
+    require 'w3c_validators'
+  
+    include W3CValidators
 
-if results.errors.length > 0
-    File.write(ARGV[1], "/*error on line #{@validator.validate_text(output).errors.to_s.split("@line=\"")[1].split("\"")[0]}/*")
-else
+    @validator = CSSValidator.new
+
+    results = @validator.validate_text(output)
+    
+    if results.errors.length > 0
+        output = ""
+        results.errors.each do |err|
+            output << "/*#{err.to_s.split("; ")[2..-1].join()}\n/*"
+        end
+    end
+
+
+rescue LoadError => e
+    nil
+ensure
     File.write(ARGV[1], output)
 end
 

@@ -20,6 +20,11 @@ Constantly compile:
 ass --watch [.ass file] [.css file]
 ```
 
+Built in css validator requires [w3c_validators](https://github.com/w3c-validators/w3c_validators) (optional)
+```bash
+sudo gem install w3c_validators
+```
+
 ## Documentation
 ---
 Spacing is important, use spaces where demonstrated and do not indent in your .ass file.(WIP)
